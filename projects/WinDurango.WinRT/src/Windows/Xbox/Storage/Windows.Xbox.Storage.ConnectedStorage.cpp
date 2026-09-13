@@ -14,7 +14,7 @@ winrt::Windows::Foundation::IAsyncAction wd::WinRT::ConnectedStorage::CreateCont
 winrt::Windows::Foundation::IAsyncAction wd::WinRT::ConnectedStorage::Read(winrt::hstring containerName, winrt::Windows::Foundation::Collections::IMapView<winrt::hstring, winrt::Windows::Storage::Streams::IBuffer> data) const
 {
     winrt::hstring l_path { (std::filesystem::path(m_storagePath.c_str()) / std::filesystem::path(containerName.c_str())).c_str() };
-    if (!DoesFolderExist(l_path))
+    if (!co_await DoesFolderExist(l_path))
     {
         co_await CreateContainer(containerName);
     }
@@ -24,16 +24,58 @@ winrt::Windows::Foundation::IAsyncAction wd::WinRT::ConnectedStorage::Read(winrt
     for (auto const &pair : data)
     {
         auto fileName = pair.Key();
-        auto file = co_await folder.GetFileAsync(fileName);
+        auto dataBuffer = pair.Value();
+        if (!dataBuffer)
+        {
+            continue;
+        }
+
+        winrt::Windows::Storage::IStorageFile file{ nullptr };
+        try
+        {
+            file = co_await folder.GetFileAsync(fileName);
+        }
+        catch (winrt::hresult_error const &)
+        {
+            // File vanished/was never created for this blob - leave the destination
+            // buffer untouched instead of crashing further down the pipeline.
+            continue;
+        }
+
         auto fileBuffer = co_await winrt::Windows::Storage::FileIO::ReadBufferAsync(file);
+        if (!fileBuffer)
+        {
+            continue;
+        }
+
+        uint32_t copySize = fileBuffer.Length();
+        if (copySize > dataBuffer.Capacity())
+        {
+            copySize = dataBuffer.Capacity();
+        }
+
+        if (copySize == 0)
+        {
+            dataBuffer.Length(0);
+            continue;
+        }
+
         auto bufferByteAccess = fileBuffer.as<Windows::Storage::Streams::IBufferByteAccess>();
         uint8_t *fileData = nullptr;
         bufferByteAccess->Buffer(&fileData);
-        auto dataBuffer = pair.Value();
+
         auto dataBufferByteAccess = dataBuffer.as<Windows::Storage::Streams::IBufferByteAccess>();
         uint8_t *dataBufferData = nullptr;
         dataBufferByteAccess->Buffer(&dataBufferData);
-        memcpy(dataBufferData, fileData, fileBuffer.Length());
+
+        if (!fileData || !dataBufferData)
+        {
+            dataBuffer.Length(0);
+            continue;
+        }
+
+        memcpy(dataBufferData, fileData, copySize);
+        dataBuffer.Length(copySize);
     }
 
     co_return;
@@ -75,8 +117,6 @@ winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Foundation::Collecti
             data.Insert(blobs, fileBuffer);
         }
     }
-
-    co_await Read(containerName, data.GetView());
 
     co_return data.GetView();
 }

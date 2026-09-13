@@ -372,21 +372,25 @@ template <abi_t ABI> void D3D11ShaderResourceView<ABI>::GetResource(gfx::ID3D11R
 {
     if (m_pBuffer)
     {
+        m_pBuffer->AddRef();
         *ppResource = m_pBuffer;
         return;
     }
     else if (m_pTexture1D)
     {
+        m_pTexture1D->AddRef();
         *ppResource = m_pTexture1D;
         return;
     }
     else if (m_pTexture2D)
     {
+        m_pTexture2D->AddRef();
         *ppResource = m_pTexture2D;
         return;
     }
     else if (m_pTexture3D)
     {
+        m_pTexture3D->AddRef();
         *ppResource = m_pTexture3D;
         return;
     }
@@ -488,21 +492,25 @@ template <abi_t ABI> void D3D11UnorderedAccessView<ABI>::GetResource(gfx::ID3D11
 {
     if (m_pBuffer)
     {
+        m_pBuffer->AddRef();
         *ppResource = m_pBuffer;
         return;
     }
     else if (m_pTexture1D)
     {
+        m_pTexture1D->AddRef();
         *ppResource = m_pTexture1D;
         return;
     }
     else if (m_pTexture2D)
     {
+        m_pTexture2D->AddRef();
         *ppResource = m_pTexture2D;
         return;
     }
     else if (m_pTexture3D)
     {
+        m_pTexture3D->AddRef();
         *ppResource = m_pTexture3D;
         return;
     }

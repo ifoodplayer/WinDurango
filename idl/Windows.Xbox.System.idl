@@ -95,7 +95,7 @@ namespace Windows.Xbox.System
         String XboxUserId { get; };
         // https://learn.microsoft.com/en-us/dotnet/api/microsoft.xbox.services.system.xboxliveuser.gettokenandsignatureasync
         Windows.Foundation.IAsyncOperation<GetTokenAndSignatureResult> GetTokenAndSignatureAsync(String method, String url, String headers);
-        Windows.Foundation.IAsyncOperation<GetTokenAndSignatureResult> GetTokenAndSignatureAsync(String method, String url, String headers, UInt32 __bodySize, [size_is(__bodySize)] UInt8 body);
+        Windows.Foundation.IAsyncOperation<GetTokenAndSignatureResult> GetTokenAndSignatureAsync(String method, String url, String headers, UInt8[] body);
         [default_overload] Windows.Foundation.IAsyncOperation<GetTokenAndSignatureResult> GetTokenAndSignatureAsync(String method, String url, String headers, String body);
     }
 
@@ -219,4 +219,15 @@ namespace Windows.Xbox.System
         User User { get; };
         AudioDeviceInfo AudioDevice { get; };
     }
+
+    // Placeholder GUID
+    [static_name("IConsoleStatics", e519b3de-b53d-497c-9ab3-798acfff9f85)]
+    [interface_name("IConsole", 3e7f1b2a-9c4d-4e5f-b6a7-1d2c3e4f5a6b)]
+    runtimeclass Console
+    {
+        static String ConsoleId { get; };
+        static String DeviceId { get; };
+        static Boolean IsDeveloperConsole { get; };
+        static String SerialNumber { get; };
+	}
 }

@@ -231,20 +231,24 @@ WrapperCreation:
 
         if (Type == D3D11_RESOURCE_DIMENSION_BUFFER)
         {
+            pResource->AddRef();
             static_cast<D3D11ShaderResourceView<ABI> *>(*ppSRV)->m_pBuffer = static_cast<D3D11Buffer<ABI> *>(pResource);
         }
         else if (Type == D3D11_RESOURCE_DIMENSION_TEXTURE1D)
         {
+            pResource->AddRef();
             static_cast<D3D11ShaderResourceView<ABI> *>(*ppSRV)->m_pTexture1D =
                 static_cast<D3D11Texture1D<ABI> *>(pResource);
         }
         else if (Type == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
         {
+            pResource->AddRef();
             static_cast<D3D11ShaderResourceView<ABI> *>(*ppSRV)->m_pTexture2D =
                 static_cast<D3D11Texture2D<ABI> *>(pResource);
         }
         else if (Type == D3D11_RESOURCE_DIMENSION_TEXTURE3D)
         {
+            pResource->AddRef();
             static_cast<D3D11ShaderResourceView<ABI> *>(*ppSRV)->m_pTexture3D =
                 static_cast<D3D11Texture3D<ABI> *>(pResource);
         }
@@ -298,21 +302,25 @@ HRESULT D3D11DeviceX<ABI>::CreateUnorderedAccessView(gfx::ID3D11Resource<ABI> *p
         (*ppUAV)->m_pAllocationStart = pResource->m_pAllocationStart;
         if (Type == D3D11_RESOURCE_DIMENSION_BUFFER)
         {
+            pResource->AddRef();
             static_cast<D3D11UnorderedAccessView<ABI> *>(*ppUAV)->m_pBuffer =
                 static_cast<D3D11Buffer<ABI> *>(pResource);
         }
         else if (Type == D3D11_RESOURCE_DIMENSION_TEXTURE1D)
         {
+            pResource->AddRef();
             static_cast<D3D11UnorderedAccessView<ABI> *>(*ppUAV)->m_pTexture1D =
                 static_cast<D3D11Texture1D<ABI> *>(pResource);
         }
         else if (Type == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
         {
+            pResource->AddRef();
             static_cast<D3D11UnorderedAccessView<ABI> *>(*ppUAV)->m_pTexture2D =
                 static_cast<D3D11Texture2D<ABI> *>(pResource);
         }
         else if (Type == D3D11_RESOURCE_DIMENSION_TEXTURE3D)
         {
+            pResource->AddRef();
             static_cast<D3D11UnorderedAccessView<ABI> *>(*ppUAV)->m_pTexture3D =
                 static_cast<D3D11Texture3D<ABI> *>(pResource);
         }
