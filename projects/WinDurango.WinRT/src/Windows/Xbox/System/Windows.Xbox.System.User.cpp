@@ -1,5 +1,85 @@
 #include "Windows.Xbox.System.User.h"
 #include "WinDurangoWinRT.h"
+#include <mutex>
+
+namespace
+{
+    struct WinDurangoTokenAndSignatureOperation : winrt::implements<WinDurangoTokenAndSignatureOperation,
+        winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Xbox::System::GetTokenAndSignatureResult>,
+        winrt::Windows::Foundation::IAsyncInfo>
+    {
+        WinDurangoTokenAndSignatureOperation(winrt::Windows::Xbox::System::GetTokenAndSignatureResult const& result)
+            : m_result(result)
+        {
+        }
+
+        uint32_t Id() const noexcept
+        {
+            return 1;
+        }
+
+        winrt::Windows::Foundation::AsyncStatus Status() const noexcept
+        {
+            return winrt::Windows::Foundation::AsyncStatus::Completed;
+        }
+
+        winrt::hresult ErrorCode() const noexcept
+        {
+            return winrt::hresult{ 0 };
+        }
+
+        void Cancel() const noexcept
+        {
+        }
+
+        void Close() const noexcept
+        {
+        }
+
+        winrt::Windows::Xbox::System::GetTokenAndSignatureResult GetResults() const
+        {
+            std::lock_guard<std::mutex> guard(m_mutex);
+            return m_result;
+        }
+
+        void Completed(winrt::Windows::Foundation::AsyncOperationCompletedHandler<winrt::Windows::Xbox::System::GetTokenAndSignatureResult> const& handler)
+        {
+            {
+                std::lock_guard<std::mutex> guard(m_mutex);
+                m_completed = handler;
+            }
+
+            if (handler)
+            {
+                try
+                {
+                    handler(get_strong().as<winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Xbox::System::GetTokenAndSignatureResult>>(),
+                        winrt::Windows::Foundation::AsyncStatus::Completed);
+                }
+                catch (...)
+                {
+                }
+            }
+        }
+
+        winrt::Windows::Foundation::AsyncOperationCompletedHandler<winrt::Windows::Xbox::System::GetTokenAndSignatureResult> Completed() const noexcept
+        {
+            std::lock_guard<std::mutex> guard(m_mutex);
+            return m_completed;
+        }
+
+    private:
+        winrt::Windows::Xbox::System::GetTokenAndSignatureResult m_result{ nullptr };
+        winrt::Windows::Foundation::AsyncOperationCompletedHandler<winrt::Windows::Xbox::System::GetTokenAndSignatureResult> m_completed{ nullptr };
+        mutable std::mutex m_mutex;
+    };
+
+    winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Xbox::System::GetTokenAndSignatureResult> MakeTokenAndSignatureOperation(winrt::hstring const& signature, winrt::hstring const& token)
+    {
+        return winrt::make<WinDurangoTokenAndSignatureOperation>(
+            winrt::make<winrt::Windows::Xbox::System::implementation::GetTokenAndSignatureResult>(signature, token));
+    }
+}
 
 namespace winrt::Windows::Xbox::System::implementation
 {
@@ -75,7 +155,7 @@ namespace winrt::Windows::Xbox::System::implementation
         hstring uhs = L"0";
         hstring token = L"XBL3.0 x=" + uhs + L";WinDurangoDevToken";
         hstring signature = L"AAAAAAAAAAAAWinDurangoDevSignatureAAAAAAAAAAA=";
-        co_return winrt::make<winrt::Windows::Xbox::System::implementation::GetTokenAndSignatureResult>(signature, token);
+        return MakeTokenAndSignatureOperation(signature, token);
     }
 
     winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Xbox::System::GetTokenAndSignatureResult> User::GetTokenAndSignatureForAllUsersAsync(hstring method, hstring url, hstring headers, winrt::Windows::Foundation::Collections::IVector<uint8_t> body)
@@ -83,7 +163,7 @@ namespace winrt::Windows::Xbox::System::implementation
         hstring uhs = L"0";
         hstring token = L"XBL3.0 x=" + uhs + L";WinDurangoDevToken";
         hstring signature = L"AAAAAAAAAAAAWinDurangoDevSignatureAAAAAAAAAAA=";
-        co_return winrt::make<winrt::Windows::Xbox::System::implementation::GetTokenAndSignatureResult>(signature, token);
+        return MakeTokenAndSignatureOperation(signature, token);
     }
 
     winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Xbox::System::GetTokenAndSignatureResult> User::GetTokenAndSignatureForAllUsersAsync(hstring method, hstring url, hstring headers, hstring body)
@@ -91,7 +171,7 @@ namespace winrt::Windows::Xbox::System::implementation
         hstring uhs = L"0";
         hstring token = L"XBL3.0 x=" + uhs + L";WinDurangoDevToken";
         hstring signature = L"AAAAAAAAAAAAWinDurangoDevSignatureAAAAAAAAAAA=";
-        co_return winrt::make<winrt::Windows::Xbox::System::implementation::GetTokenAndSignatureResult>(signature, token);
+        return MakeTokenAndSignatureOperation(signature, token);
     }
 
     winrt::event_token User::AudioDeviceAdded(winrt::Windows::Foundation::EventHandler<winrt::Windows::Xbox::System::AudioDeviceAddedEventArgs> const& handler)
@@ -228,7 +308,7 @@ namespace winrt::Windows::Xbox::System::implementation
         hstring uhs = XboxUserHash();
         hstring token = L"XBL3.0 x=" + uhs + L";WinDurangoDevToken";
         hstring signature = L"AAAAAAAAAAAAWinDurangoDevSignatureAAAAAAAAAAA=";
-        co_return winrt::make<GetTokenAndSignatureResult>(signature, token);
+        return MakeTokenAndSignatureOperation(signature, token);
     }
 
     winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Xbox::System::GetTokenAndSignatureResult> User::GetTokenAndSignatureAsync(hstring method, hstring url, hstring headers, winrt::array_view<uint8_t const> body)
@@ -236,7 +316,7 @@ namespace winrt::Windows::Xbox::System::implementation
         hstring uhs = XboxUserHash();
         hstring token = L"XBL3.0 x=" + uhs + L";WinDurangoDevToken";
         hstring signature = L"AAAAAAAAAAAAWinDurangoDevSignatureAAAAAAAAAAA=";
-        co_return winrt::make<GetTokenAndSignatureResult>(signature, token);
+        return MakeTokenAndSignatureOperation(signature, token);
     }
 
     winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Xbox::System::GetTokenAndSignatureResult> User::GetTokenAndSignatureAsync(hstring method, hstring url, hstring headers, hstring body)
@@ -244,7 +324,7 @@ namespace winrt::Windows::Xbox::System::implementation
         hstring uhs = XboxUserHash();
         hstring token = L"XBL3.0 x=" + uhs + L";WinDurangoDevToken";
         hstring signature = L"AAAAAAAAAAAAWinDurangoDevSignatureAAAAAAAAAAA=";
-        co_return winrt::make<GetTokenAndSignatureResult>(signature, token);
+        return MakeTokenAndSignatureOperation(signature, token);
     }
     winrt::event<winrt::Windows::Foundation::EventHandler<winrt::Windows::Xbox::System::OnlineStateChangedEventArgs>> User::m_OnlineStateChanged{};
     winrt::event<winrt::Windows::Foundation::EventHandler<winrt::Windows::Xbox::System::UserAddedEventArgs>> User::m_UserAdded{};
